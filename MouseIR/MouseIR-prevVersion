@@ -1,0 +1,118 @@
+//
+// MouseIR.h
+// - IRSensor class for the micromouse
+//
+//==============================================================
+
+#ifndef _MouseIR_
+#define _MouseIR_
+
+// #include [whatever arduino things needed]
+#include "Arduino.h"
+//#include "../MouseOutput/MouseOutput.h"
+
+#ifndef wallDist
+#define wallDist 500 ///  <------ Change this to real value
+#endif
+
+#define ERROR 20
+
+class IRSensor
+{
+	private:
+		int pin, powPin;
+		//int offset; // Each IR needs an offset to correct for differences in each
+		int min;
+		int wDist;
+		int offset;
+
+	public:
+		IRSensor( int sPin = 0, int pPin = 0, int min = 0, int max = 0 );
+		
+		int rawDist();
+		int dist(); // Returns rounded distance (voltage)
+		bool wall(); // Returns whether or not there is a wall
+		bool tooClose();
+		void setOffset( int = 0 );
+		void setMinMax( int = 0, int = 0 );
+};
+
+
+
+
+IRSensor::IRSensor( int sPin, int pPin, int min, int max )
+: pin( sPin ), powPin( pPin )
+{
+	min = min;
+	wDist = max;
+	offset = 0;
+	if(powPin)
+	{
+		pinMode( powPin, OUTPUT );
+		digitalWrite(powPin, HIGH);
+	}
+}
+
+int IRSensor::rawDist()
+{
+	int ret = analogRead(pin);
+	return ret;
+}
+
+int IRSensor::dist()
+{
+	if( wDist != 0 )
+	{
+		return rawDist() + offset;
+	}
+	return rawDist();
+}
+
+bool IRSensor::wall()
+{
+	return dist() - ERROR < wDist;
+}
+
+bool IRSensor::tooClose()
+{
+	return dist() - ERROR < min;
+}
+
+void IRSensor::setOffset( int off )
+{
+	offset = off;
+}
+
+void IRSensor::setMinMax( int newMin, int newMax )
+{
+	min = newMin;
+	wDist = newMax;
+
+	/*if( off == 0 ) // If offset not specified, grab own value
+		offset = rawDist() - wallDist;
+	else offset = off;*/
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#undef wallDist
+#undef ERROR
+#endif
